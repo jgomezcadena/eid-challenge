@@ -1,0 +1,17 @@
+- Cada una de las piezas principales del sistema se ha tratado de modelar como un microservicio, de forma que el sistema sea fácilmente escalable. Como se puede ver en el esquema, todas los microservicios son representados mediante N instancias, las cuales podrían ser desplegadas bajo demanda, utilizando por ejemplo Docker.
+
+- La comunicación y gestión de eventos entre los diferentes microservicios se realiza utilizando Apache Kafka, lo cual nos proporciona escalabilidad, tolerancia a fallos, persistencia, alta disponibilidad, etc.
+
+- Las bases de datos utilizadas son distribuidas y compartidas por todas las instancias del mismo tipo de un microservicio. El tipo de BD utilizada dependería de la información a almacenar. Los más probable es que la BD utilizada por el servicio de estado del registro fuera relacional, mientras que la utilizada por el servicio de persistencia de vídeo fuera no relacional.
+
+- Las piezas que interactúan con agentes externos como son los usuarios a través de sus apps móviles, o los revisores externos de los vídeos, cuentan con balanceadores de carga, que reparten las conexiones entre las diferentes instancias de los microservicios.
+
+- A grandes rasgos, el funcionamiento del sistema sería:
+
+	1) El usuario, a través de su app móvil, realiza el proceso de registro y envía el vídeo al sistema, siendo gestionado por "Mobile app backend service".
+	2)
+		a) El vídeo es almacenado en crudo por "Video persistence service"
+		b) El vídeo es procesado por "Video processor service"
+		c) Se actualiza el estado del registro por medio de "Register status service".
+	3) Una vez el vídeo se ha procesado, a través de "Video review service" puede ser revisado por agentes externos.
+	4) Cuando dichos agentes le dan el visto bueno, a través de "Video review service" se comunica al resto del sistema que ha sido validado, actualizando la información por medio de "Register status service", y marcando el registro como válido y completado.
